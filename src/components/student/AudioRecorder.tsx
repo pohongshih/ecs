@@ -16,12 +16,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onSave }) => {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const options = MediaRecorder.isTypeSupported('audio/webm') 
-        ? { mimeType: 'audio/webm' } 
-        : MediaRecorder.isTypeSupported('audio/mp4') 
-          ? { mimeType: 'audio/mp4' } 
-          : undefined;
-      const recorder = new MediaRecorder(stream, options);
+      const recorder = new MediaRecorder(stream);
       const chunks: BlobPart[] = [];
 
       recorder.ondataavailable = (e) => {

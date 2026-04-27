@@ -61,8 +61,9 @@ export const StudentDashboard: React.FC<{ user: any }> = ({ user }) => {
       setShowRecorder(false);
       setSelectedHw(null);
       loadData();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Submission failed", error);
+      alert("Submission failed: " + (error?.message || JSON.stringify(error)));
     } finally {
       setLoading(false);
     }
