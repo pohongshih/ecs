@@ -200,8 +200,8 @@ export const StudentDashboard: React.FC<{ user: any }> = ({ user }) => {
 
                   {showRecorder && !selectedHw.submission && (
                     <div className="pt-8 border-t border-slate-100">
-                      <AudioRecorder onSave={handleAudioSave} />
-                      <Button variant="ghost" className="w-full mt-6 text-slate-400 font-bold uppercase tracking-widest text-xs" onClick={() => setShowRecorder(false)}>Cancel Recording</Button>
+                      <AudioRecorder onSave={handleAudioSave} isUploading={loading} />
+                      <Button variant="ghost" className="w-full mt-6 text-slate-400 font-bold uppercase tracking-widest text-xs" onClick={() => setShowRecorder(false)} disabled={loading}>Cancel Recording</Button>
                     </div>
                   )}
 

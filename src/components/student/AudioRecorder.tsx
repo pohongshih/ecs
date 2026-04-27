@@ -5,9 +5,10 @@ import { Button } from '../common/Button';
 interface AudioRecorderProps {
   onSave: (blob: Blob) => void;
   maxRecordings?: number;
+  isUploading?: boolean;
 }
 
-export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onSave }) => {
+export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onSave, isUploading = false }) => {
   const [isRecording, setIsRecording] = React.useState(false);
   const [recordings, setRecordings] = React.useState<{ blob: Blob; url: string; timestamp: Date }[]>([]);
   const [mediaRecorder, setMediaRecorder] = React.useState<MediaRecorder | null>(null);
@@ -120,8 +121,14 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onSave }) => {
       </div>
 
       {selectedIdx !== null && (
-        <Button className="w-full py-5 text-base font-black gap-3 rounded-2xl uppercase tracking-widest shadow-xl shadow-indigo-100" onClick={() => onSave(recordings[selectedIdx].blob)}>
-          Submit Version {selectedIdx + 1}
+        <Button disabled={isUploading} className="w-full py-5 text-base font-black gap-3 rounded-2xl uppercase tracking-widest shadow-xl shadow-indigo-100" onClick={() => onSave(recordings[selectedIdx].blob)}>
+          {isUploading ? (
+            <span className="flex items-center gap-2">
+              <RefreshCcw className="w-5 h-5 animate-spin" /> Uploading...
+            </span>
+          ) : (
+            `Submit Version ${selectedIdx + 1}`
+          )}
         </Button>
       )}
     </div>
