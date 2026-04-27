@@ -113,7 +113,7 @@ service cloud.firestore {
       
       allow update: if isSignedIn() && (
         // Action: Teacher Grades
-        (isTeacher() && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'score', 'feedback', 'aiFeedback', 'teacherComment', 'updatedAt']) &&
+        (isTeacher() && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'score', 'feedback', 'aiFeedback', 'teacherComment', 'transcript', 'updatedAt']) &&
          incoming().updatedAt == request.time && incoming().status == 'graded') ||
         // Action: Student re-uploads (if not graded)
         (isStudent() && existing().studentId == request.auth.uid && existing().status == 'submitted' &&

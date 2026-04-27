@@ -21,7 +21,8 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onSave }) => {
 
       recorder.ondataavailable = (e) => chunks.push(e.data);
       recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
+        const mimeType = chunks[0]?.type || recorder.mimeType || 'audio/webm';
+        const blob = new Blob(chunks, { type: mimeType });
         const url = URL.createObjectURL(blob);
         setRecordings(prev => [...prev, { blob, url, timestamp: new Date() }]);
       };
