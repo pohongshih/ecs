@@ -12,8 +12,10 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onSave }) => {
   const [recordings, setRecordings] = React.useState<{ blob: Blob; url: string; timestamp: Date }[]>([]);
   const [mediaRecorder, setMediaRecorder] = React.useState<MediaRecorder | null>(null);
   const [selectedIdx, setSelectedIdx] = React.useState<number | null>(null);
+  const [micError, setMicError] = React.useState<string | null>(null);
 
   const startRecording = async () => {
+    setMicError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
@@ -36,8 +38,9 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onSave }) => {
       recorder.start();
       setMediaRecorder(recorder);
       setIsRecording(true);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Microphone access denied", err);
+      setMicError(err?.message || 'Microphone access denied. Please allow microphone permissions in your browser settings.');
     }
   };
 
@@ -56,6 +59,12 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onSave }) => {
 
   return (
     <div className="space-y-6">
+      {micError && (
+        <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold border border-red-200">
+          {micError}
+        </div>
+      )}
+
       {/* Controls */}
       <div className="flex flex-col items-center justify-center p-10 bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200">
         <div className={`w-24 h-24 rounded-full flex items-center justify-center transition-all ${isRecording ? 'bg-red-500 animate-pulse scale-110 shadow-2xl shadow-red-200' : 'bg-indigo-600 shadow-xl shadow-indigo-100'}`}>

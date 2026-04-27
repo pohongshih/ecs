@@ -21,9 +21,11 @@ export const StudentDashboard: React.FC<{ user: any }> = ({ user }) => {
   
   const [loading, setLoading] = React.useState(false);
   const [showRecorder, setShowRecorder] = React.useState(false);
+  const [errorObj, setErrorObj] = React.useState<string | null>(null);
 
   const loadData = async () => {
     setLoading(true);
+    setErrorObj(null);
     const studentClasses = await getClassesForStudent(user.email);
     setClasses(studentClasses);
 
@@ -63,7 +65,8 @@ export const StudentDashboard: React.FC<{ user: any }> = ({ user }) => {
       loadData();
     } catch (error: any) {
       console.error("Submission failed", error);
-      alert("Submission failed: " + (error?.message || JSON.stringify(error)));
+      const errorMessage = error?.message || JSON.stringify(error);
+      setErrorObj("Submission failed: " + errorMessage);
     } finally {
       setLoading(false);
     }
@@ -187,6 +190,12 @@ export const StudentDashboard: React.FC<{ user: any }> = ({ user }) => {
                       <Mic className="w-6 h-6" />
                       Start Homework Recording
                     </Button>
+                  )}
+
+                  {errorObj && (
+                    <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold border border-red-200">
+                      {errorObj}
+                    </div>
                   )}
 
                   {showRecorder && !selectedHw.submission && (
