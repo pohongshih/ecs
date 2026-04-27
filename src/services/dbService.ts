@@ -38,7 +38,8 @@ export interface SubmissionData {
   id?: string;
   homeworkId: string;
   studentId: string;
-  audioUrl: string;
+  audioData?: string;
+  audioUrl?: string; // Keep for backward compatibility
   status: 'submitted' | 'graded';
   score?: number;
   feedback?: string;

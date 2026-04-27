@@ -67,10 +67,10 @@ service cloud.firestore {
     }
 
     function isValidSubmission(data) {
-      return data.keys().hasAll(['homeworkId', 'studentId', 'audioUrl', 'status', 'createdAt']) &&
+      return data.keys().hasAll(['homeworkId', 'studentId', 'status', 'createdAt']) &&
+             data.keys().hasAny(['audioUrl', 'audioData']) &&
              data.homeworkId is string &&
              data.studentId == request.auth.uid &&
-             data.audioUrl is string &&
              data.status == 'submitted' &&
              data.createdAt == request.time;
     }
@@ -117,7 +117,7 @@ service cloud.firestore {
          incoming().updatedAt == request.time && incoming().status == 'graded') ||
         // Action: Student re-uploads (if not graded)
         (isStudent() && existing().studentId == request.auth.uid && existing().status == 'submitted' &&
-         incoming().diff(existing()).affectedKeys().hasOnly(['audioUrl', 'updatedAt']) &&
+         incoming().diff(existing()).affectedKeys().hasOnly(['audioUrl', 'audioData', 'updatedAt']) &&
          incoming().updatedAt == request.time)
       );
     }

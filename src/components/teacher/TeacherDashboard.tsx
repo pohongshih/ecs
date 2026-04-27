@@ -273,7 +273,7 @@ export const TeacherDashboard: React.FC<{ user: any }> = ({ user }) => {
                   )}
                 </div>
                 
-                <audio src={sub.audioUrl} controls className="w-full h-10 accent-indigo-600" />
+                <audio src={sub.audioData || sub.audioUrl} controls className="w-full h-10 accent-indigo-600" />
                 
                 <div className="flex gap-3">
                   <Button className="flex-1 text-[10px] uppercase tracking-widest font-black py-3 rounded-xl bg-slate-900 hover:bg-slate-800" onClick={() => handleGradeWithAI(sub)} disabled={loading}>

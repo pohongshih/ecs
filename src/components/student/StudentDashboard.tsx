@@ -49,14 +49,18 @@ export const StudentDashboard: React.FC<{ user: any }> = ({ user }) => {
     if (!selectedHw?.id) return;
     setLoading(true);
     try {
-      const extension = blob.type.includes('mp4') ? 'm4a' : 'webm';
-      const path = `audio/${user.uid}/${selectedHw.id}_${Date.now()}.${extension}`;
-      const url = await uploadAudio(blob, path);
+      // Convert blob directly to base64 data URL to store in Firestore and bypass Storage limits
+      const base64DataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
       
       await submitHomework({
         homeworkId: selectedHw.id,
         studentId: user.uid,
-        audioUrl: url,
+        audioData: base64DataUrl,
         status: 'submitted'
       });
       
@@ -209,7 +213,7 @@ export const StudentDashboard: React.FC<{ user: any }> = ({ user }) => {
                     <div className="space-y-8 pt-8 border-t border-slate-100">
                       <div className="bg-slate-50 p-8 rounded-[2rem] border border-slate-200">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 border-b border-slate-200 pb-2">Audio Submission</p>
-                        <audio src={selectedHw.submission.audioUrl} controls className="w-full accent-indigo-600" />
+                        <audio src={selectedHw.submission.audioData || selectedHw.submission.audioUrl} controls className="w-full accent-indigo-600" />
                         <p className="mt-6 text-[10px] text-slate-300 font-bold uppercase tracking-tighter">Submitted at {new Date(selectedHw.submission.createdAt.toDate()).toLocaleString()}</p>
                       </div>
 
