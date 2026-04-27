@@ -1,0 +1,6 @@
+{
+  "name": "English Coaching System (ECS)",
+  "description": "An AI-powered English teaching platform for voice recording assignments, automated AI feedback, and student-teacher interaction.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": []
+}
