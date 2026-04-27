@@ -12,7 +12,8 @@ import {
   HomeworkData,
   getSubmissionsByHomework,
   SubmissionData,
-  gradeSubmission
+  gradeSubmission,
+  getUserProfile
 } from '../../services/dbService';
 import { format } from 'date-fns';
 import { analyzeEnglishAudio } from '../../services/aiService';
@@ -28,6 +29,9 @@ export const TeacherDashboard: React.FC<{ user: any }> = ({ user }) => {
   const [showCreateHomework, setShowCreateHomework] = React.useState(false);
   
   const [loading, setLoading] = React.useState(false);
+  const [gradingSubId, setGradingSubId] = React.useState<string | null>(null);
+  const [errorObj, setErrorObj] = React.useState<string | null>(null);
+  const [studentNames, setStudentNames] = React.useState<Record<string, string>>({});
 
   // Form states
   const [newClassName, setNewClassName] = React.useState('');
@@ -50,6 +54,20 @@ export const TeacherDashboard: React.FC<{ user: any }> = ({ user }) => {
   const loadSubmissions = async (hwId: string) => {
     const data = await getSubmissionsByHomework(hwId);
     setSubmissions(data);
+    
+    // Fetch and map student names
+    const names: Record<string, string> = { ...studentNames };
+    for (const sub of data) {
+      if (!names[sub.studentId]) {
+        try {
+          const profile = await getUserProfile(sub.studentId);
+          names[sub.studentId] = profile?.name || sub.studentId.slice(0, 8);
+        } catch (e) {
+          names[sub.studentId] = sub.studentId.slice(0, 8);
+        }
+      }
+    }
+    setStudentNames(names);
   };
 
   React.useEffect(() => {
@@ -115,16 +133,23 @@ export const TeacherDashboard: React.FC<{ user: any }> = ({ user }) => {
   };
 
   const handleGradeWithAI = async (submission: SubmissionData) => {
-    if (!submission.audioUrl || !submission.id) return;
-    setLoading(true);
+    const audioSrc = submission.audioData || submission.audioUrl;
+    if (!audioSrc || !submission.id) {
+      setErrorObj("No audio data available for this submission.");
+      return;
+    }
+    
+    setGradingSubId(submission.id);
+    setErrorObj(null);
     try {
       // 1. Extract base64 from data URL
       let base64 = '';
       let mimeType = 'audio/webm';
-      if (submission.audioUrl.startsWith('data:')) {
-        base64 = submission.audioUrl.split(',')[1];
+      if (audioSrc.startsWith('data:')) {
+        base64 = audioSrc.split(',')[1];
+        mimeType = audioSrc.substring(audioSrc.indexOf(':') + 1, audioSrc.indexOf(';'));
       } else {
-        const responseBuffer = await fetch(submission.audioUrl);
+        const responseBuffer = await fetch(audioSrc);
         const blobData = await responseBuffer.blob();
         mimeType = blobData.type || 'audio/webm';
         base64 = await new Promise<string>((resolve) => {
@@ -148,11 +173,14 @@ export const TeacherDashboard: React.FC<{ user: any }> = ({ user }) => {
         teacherComment: `AI suggests a score of ${aiResult.score}.`
       });
 
-      if (selectedHomework?.id) loadSubmissions(selectedHomework.id);
+      if (selectedHomework?.id) {
+        await loadSubmissions(selectedHomework.id);
+      }
     } catch (error) {
       console.error("AI grading failed", error);
+      setErrorObj(error instanceof Error ? error.message : "AI Grading failed unpredictably.");
     } finally {
-      setLoading(false);
+      setGradingSubId(null);
     }
   };
 
@@ -177,6 +205,13 @@ export const TeacherDashboard: React.FC<{ user: any }> = ({ user }) => {
           <span>New Class</span>
         </Button>
       </div>
+
+      {errorObj && (
+        <div className="col-span-12 bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl flex items-center justify-between">
+          <p className="text-sm font-bold">{errorObj}</p>
+          <Button variant="ghost" className="text-red-700 hover:bg-red-100 p-2" onClick={() => setErrorObj(null)}>Dismiss</Button>
+        </div>
+      )}
 
       {/* Main Grid Layout */}
       <div className="col-span-12 grid grid-cols-12 gap-6 flex-grow">
@@ -260,7 +295,7 @@ export const TeacherDashboard: React.FC<{ user: any }> = ({ user }) => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Student</p>
-                    <h5 className="text-sm font-black text-slate-900 truncate max-w-[120px]">{sub.studentId.slice(0, 8)}...</h5>
+                    <h5 className="text-sm font-black text-slate-900 truncate max-w-[120px]">{studentNames[sub.studentId] || sub.studentId.slice(0, 8)}</h5>
                     <p className={`text-[10px] font-black uppercase px-3 py-1 rounded-full inline-block mt-2 border ${sub.status === 'graded' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-orange-50 text-orange-700 border-orange-100 animate-pulse'}`}>
                       {sub.status}
                     </p>
@@ -276,9 +311,9 @@ export const TeacherDashboard: React.FC<{ user: any }> = ({ user }) => {
                 <audio src={sub.audioData || sub.audioUrl} controls className="w-full h-10 accent-indigo-600" />
                 
                 <div className="flex gap-3">
-                  <Button className="flex-1 text-[10px] uppercase tracking-widest font-black py-3 rounded-xl bg-slate-900 hover:bg-slate-800" onClick={() => handleGradeWithAI(sub)} disabled={loading}>
+                  <Button className="flex-1 text-[10px] uppercase tracking-widest font-black py-3 rounded-xl bg-slate-900 hover:bg-slate-800" onClick={() => handleGradeWithAI(sub)} disabled={gradingSubId === sub.id}>
                     <span className="w-2 h-2 bg-cyan-400 rounded-full mr-2 shadow-[0_0_8px_cyan]"></span>
-                    {loading ? 'Analyzing...' : 'AI Auto-Grade'}
+                    {gradingSubId === sub.id ? 'Analyzing...' : 'AI Auto-Grade'}
                   </Button>
                 </div>
 

@@ -1,6 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: (import.meta.env.VITE_MY_API_KEY || process.env.GEMINI_API_KEY) as string });
+// @ts-ignore
+const ai = new GoogleGenAI({ apiKey: ((import.meta as any)?.env?.VITE_MY_API_KEY || process.env.GEMINI_API_KEY) as string });
 
 export interface FeedbackResult {
   score: number;
