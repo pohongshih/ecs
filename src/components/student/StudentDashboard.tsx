@@ -47,7 +47,8 @@ export const StudentDashboard: React.FC<{ user: any }> = ({ user }) => {
     if (!selectedHw?.id) return;
     setLoading(true);
     try {
-      const path = `audio/${user.uid}/${selectedHw.id}_${Date.now()}.webm`;
+      const extension = blob.type.includes('mp4') ? 'm4a' : 'webm';
+      const path = `audio/${user.uid}/${selectedHw.id}_${Date.now()}.${extension}`;
       const url = await uploadAudio(blob, path);
       
       await submitHomework({

@@ -16,15 +16,26 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onSave }) => {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      const options = MediaRecorder.isTypeSupported('audio/webm') 
+        ? { mimeType: 'audio/webm' } 
+        : MediaRecorder.isTypeSupported('audio/mp4') 
+          ? { mimeType: 'audio/mp4' } 
+          : undefined;
+      const recorder = new MediaRecorder(stream, options);
       const chunks: BlobPart[] = [];
 
-      recorder.ondataavailable = (e) => chunks.push(e.data);
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+      
       recorder.onstop = () => {
-        const mimeType = chunks[0]?.type || recorder.mimeType || 'audio/webm';
+        const mimeType = recorder.mimeType || 'audio/mp4'; // Fallback for iOS
         const blob = new Blob(chunks, { type: mimeType });
         const url = URL.createObjectURL(blob);
         setRecordings(prev => [...prev, { blob, url, timestamp: new Date() }]);
+        
+        // Stop stream tracks here instead of exactly when stopping recorder
+        stream.getTracks().forEach(track => track.stop());
       };
 
       recorder.start();
@@ -36,9 +47,10 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onSave }) => {
   };
 
   const stopRecording = () => {
-    mediaRecorder?.stop();
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+    }
     setIsRecording(false);
-    mediaRecorder?.stream.getTracks().forEach(track => track.stop());
   };
 
   const deleteRecording = (idx: number) => {

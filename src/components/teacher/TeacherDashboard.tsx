@@ -120,11 +120,13 @@ export const TeacherDashboard: React.FC<{ user: any }> = ({ user }) => {
     try {
       // 1. Extract base64 from data URL
       let base64 = '';
+      let mimeType = 'audio/webm';
       if (submission.audioUrl.startsWith('data:')) {
         base64 = submission.audioUrl.split(',')[1];
       } else {
         const responseBuffer = await fetch(submission.audioUrl);
         const blobData = await responseBuffer.blob();
+        mimeType = blobData.type || 'audio/webm';
         base64 = await new Promise<string>((resolve) => {
           const reader = new FileReader();
           reader.onloadend = () => resolve(reader.result?.toString().split(',')[1] || '');
@@ -133,7 +135,10 @@ export const TeacherDashboard: React.FC<{ user: any }> = ({ user }) => {
       }
 
       // 2. Analyze with Gemini
-      const aiResult = await analyzeEnglishAudio(base64);
+      const title = selectedHomework?.title || "English Speaking Homework";
+      const description = selectedHomework?.instructions || "Speak about the given topic clearly.";
+      
+      const aiResult = await analyzeEnglishAudio(base64, mimeType, title, description);
 
       // 3. Update Firestore
       await gradeSubmission(submission.id, {
