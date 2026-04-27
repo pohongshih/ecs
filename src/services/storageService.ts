@@ -1,7 +1,14 @@
 import { storage, ref, uploadBytes, getDownloadURL } from '../lib/firebase';
 
 export async function uploadAudio(file: Blob, path: string): Promise<string> {
-  const fileRef = ref(storage, path);
-  await uploadBytes(fileRef, file);
-  return await getDownloadURL(fileRef);
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onloadend = () => {
+      resolve(reader.result as string);
+    };
+    reader.onerror = (error) => {
+      reject(error);
+    };
+  });
 }

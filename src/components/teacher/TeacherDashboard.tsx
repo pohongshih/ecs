@@ -118,14 +118,19 @@ export const TeacherDashboard: React.FC<{ user: any }> = ({ user }) => {
     if (!submission.audioUrl || !submission.id) return;
     setLoading(true);
     try {
-      // 1. Fetch audio and convert to base64
-      const responseBuffer = await fetch(submission.audioUrl);
-      const blobData = await responseBuffer.blob();
-      const base64 = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result?.toString().split(',')[1] || '');
-        reader.readAsDataURL(blobData);
-      });
+      // 1. Extract base64 from data URL
+      let base64 = '';
+      if (submission.audioUrl.startsWith('data:')) {
+        base64 = submission.audioUrl.split(',')[1];
+      } else {
+        const responseBuffer = await fetch(submission.audioUrl);
+        const blobData = await responseBuffer.blob();
+        base64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result?.toString().split(',')[1] || '');
+          reader.readAsDataURL(blobData);
+        });
+      }
 
       // 2. Analyze with Gemini
       const aiResult = await analyzeEnglishAudio(base64);

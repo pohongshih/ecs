@@ -21,7 +21,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onSave }) => {
 
       recorder.ondataavailable = (e) => chunks.push(e.data);
       recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'audio/webm' });
+        const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
         const url = URL.createObjectURL(blob);
         setRecordings(prev => [...prev, { blob, url, timestamp: new Date() }]);
       };
@@ -81,11 +81,9 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onSave }) => {
               className={`p-5 rounded-2xl border transition-all flex items-center justify-between gap-4 ${selectedIdx === idx ? 'border-indigo-600 bg-indigo-50 shadow-sm' : 'border-slate-100 bg-white hover:bg-slate-50'}`}
               onClick={() => setSelectedIdx(idx)}
             >
-              <div className="flex items-center gap-3">
-                <Button variant="ghost" size="icon" className="w-10 h-10 bg-slate-100 rounded-xl" onClick={(e) => { e.stopPropagation(); new Audio(rec.url).play(); }}>
-                  <Play className="w-4 h-4 text-indigo-600 fill-indigo-600" />
-                </Button>
-                <div>
+              <div className="flex items-center gap-3 w-full">
+                <audio src={rec.url} controls className="max-w-[150px] md:max-w-[200px]" />
+                <div className="flex-col">
                   <p className="text-sm font-black text-slate-800">Version {idx + 1}</p>
                   <p className="text-[10px] text-slate-400 font-bold">{rec.timestamp.toLocaleTimeString()}</p>
                 </div>
