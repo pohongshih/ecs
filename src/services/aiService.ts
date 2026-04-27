@@ -10,7 +10,7 @@ export interface FeedbackResult {
 }
 
 export async function analyzeEnglishAudio(audioBase64: string, mimeType: string, homeworkTitle: string, homeworkDescription: string): Promise<FeedbackResult> {
-  const model = "gemini-3.1-flash";
+  const model = "gemini-2.5-flash";
   
   const response = await ai.models.generateContent({
     model,
